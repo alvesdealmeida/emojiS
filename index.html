@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emoji Som Teste</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f4f8;
+            font-family: sans-serif;
+        }
+        #emoji {
+            font-size: 100px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        #emoji:active { transform: scale(1.2); }
+        .status { margin-top: 20px; color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div id="emoji">🎁</div>
+    <div class="status" id="msg">Clique no emoji para ativar o som</div>
+
+    <script>
+        const emoji = document.getElementById('emoji');
+        const msg = document.getElementById('msg');
+        
+        // Criando o áudio via código para garantir o carregamento
+        const som = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+        som.preload = "auto";
+
+        // Função principal de interação
+        const disparar = () => {
+            // Tenta tocar o som
+            som.currentTime = 0;
+            const playPromise = som.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Som tocou com sucesso!
+                    msg.innerText = "Som ativado! 🎉";
+                    
+                    // Confetes
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }).catch(error => {
+                    // O Chrome bloqueou
+                    msg.innerText = "Erro: Clique novamente para permitir o som.";
+                    console.log("Bloqueio do Navegador:", error);
+                });
+            }
+        };
+
+        // Escuta tanto clique quanto toque em celulares/tablets
+        emoji.addEventListener('pointerdown', disparar);
+
+        // Pré-carregamento silencioso ao primeiro toque em qualquer lugar da tela
+        document.body.addEventListener('touchstart', function() {
+            som.play().then(() => {
+                som.pause();
+                som.currentTime = 0;
+            });
+        }, { once: true });
+
+    </script>
+</body>
+</html>
