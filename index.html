@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Emoji Som Teste</title>
+    <title>Lembrete Especial</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        :root {
+            --cor-texto: #2c3e50;
+            --cor-destaque: #e74c3c;
+        }
+
         body {
             margin: 0;
             display: flex;
@@ -13,68 +18,109 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f4f8;
-            font-family: sans-serif;
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            text-align: center;
         }
+
         #emoji {
-            font-size: 100px;
+            font-size: 120px;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
-        #emoji:active { transform: scale(1.2); }
-        .status { margin-top: 20px; color: #888; font-size: 14px; }
+
+        #emoji:active {
+            transform: scale(0.8);
+        }
+
+        .mensagem-container {
+            height: 100px; /* Espaço reservado para a frase */
+            margin-top: 30px;
+            padding: 0 20px;
+        }
+
+        #frase {
+            font-size: 24px;
+            color: var(--cor-texto);
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        #frase.visivel {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .amanha {
+            color: var(--cor-destaque);
+            display: block;
+            font-size: 32px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
     <div id="emoji">🎁</div>
-    <div class="status" id="msg">Clique no emoji para ativar o som</div>
+
+    <div class="mensagem-container">
+        <div id="frase">
+            Passando pra lembrar: <br>
+            <span class="amanha">...........Amanhã é Segunda!!!!</span>
+        </div>
+    </div>
+
+    <audio id="somClick" preload="auto">
+        <source src="fantastico.mp3">
+    </audio>
 
     <script>
         const emoji = document.getElementById('emoji');
-        const msg = document.getElementById('msg');
-        
-        // Criando o áudio via código para garantir o carregamento
-        const som = new Audio("fantastico.mp3");
-        som.preload = "auto";
+        const frase = document.getElementById('frase');
+        const som = document.getElementById('somClick');
 
-        // Função principal de interação
-        const disparar = () => {
-            // Tenta tocar o som
+        // Função para disparar a surpresa
+        const dispararSurpresa = () => {
+            // 1. Tocar o som
             som.currentTime = 0;
-            const playPromise = som.play();
+            som.play().catch(e => console.log("Interaja com a página primeiro"));
 
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    // Som tocou com sucesso!
-                    msg.innerText = "Som ativado! 🎉";
-                    
-                    // Confetes
-                    confetti({
-                        particleCount: 100,
-                        spread: 70,
-                        origin: { y: 0.6 }
-                    });
-                }).catch(error => {
-                    // O Chrome bloqueou
-                    msg.innerText = "Erro: Clique novamente para permitir o som.";
-                    console.log("Bloqueio do Navegador:", error);
-                });
-            }
+            // 2. Confetes
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#e74c3c', '#f1c40f', '#3498db']
+            });
+
+            // 3. Mostrar a frase com animação
+            frase.classList.add('visivel');
+
+            // 4. Mudar o emoji para uma cara de susto/risada
+            emoji.innerText = "😱";
+
+            // Opcional: Esconder a frase após alguns segundos para poder clicar de novo
+            setTimeout(() => {
+                // frase.classList.remove('visivel');
+                // emoji.innerText = "🎁";
+            }, 5000);
         };
 
-        // Escuta tanto clique quanto toque em celulares/tablets
-        emoji.addEventListener('pointerdown', disparar);
+        // Eventos para Desktop e Mobile
+        emoji.addEventListener('pointerdown', dispararSurpresa);
 
-        // Pré-carregamento silencioso ao primeiro toque em qualquer lugar da tela
-        document.body.addEventListener('touchstart', function() {
+        // Desbloqueio de áudio para navegadores mobile (Chrome/Safari)
+        document.body.addEventListener('touchstart', () => {
             som.play().then(() => {
                 som.pause();
                 som.currentTime = 0;
             });
         }, { once: true });
-
     </script>
 </body>
 </html>
